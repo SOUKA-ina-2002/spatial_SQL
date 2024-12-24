@@ -77,12 +77,42 @@ The total area of the parcels within the 1 km radius is **5,192,474.35 square un
 ## Additional Notes
 
 1. **Visualization in QGIS**:
-   - Duplicate the parcel layer and apply a filter using the same `ST_DWithin` logic.
-   - Change the symbology to highlight the parcels within the risk zones.
+   - Duplicate the parcel layer in QGIS by right-clicking on it and selecting `Duplicate`.
+   - Apply a filter using the following SQL logic to isolate parcels within the 1 km radius:
+
+     ```sql
+     ST_DWithin(geom, (SELECT ST_Centroid(geom) FROM "public"."parcels" WHERE gid = 462273), 1000)
+     OR
+     ST_DWithin(geom, (SELECT ST_Centroid(geom) FROM "public"."parcels" WHERE gid = 460957), 1000)
+     ```
+   - Click `Apply` to display only the filtered parcels.
+   - **Steps to apply the filter**:
+     1. Right-click on the duplicated layer and select **Filter**.
+     2. Paste the above SQL filter expression in the dialog box.
+     3. Click **OK** or **Apply** to activate the filter.
+     4. The map will now display only parcels matching the filter conditions.
+   - Change the symbology by double-clicking on the layer and choosing styles such as color coding to highlight the parcels within the risk zones.
 
 2. **Expanding Analysis**:
-   - Add more fire points or adjust the radius to refine the analysis.
-   - Use functions like `ST_Intersection` to calculate overlapping areas.
+   - Add more fire points by including their centroids in the `ST_DWithin` clause to expand the area of interest.
+   - Adjust the radius (e.g., 500m or 2km) by modifying the numeric value in the `ST_DWithin` function.
+   - Use advanced functions like `ST_Intersection` to calculate and visualize overlapping areas of influence from multiple fire points.
+   - For more detailed statistics, execute queries such as:
+
+     ```sql
+     SELECT AVG(shape_area) AS avg_area, MAX(shape_area) AS max_area
+     FROM "public"."parcels"
+     WHERE ST_DWithin(
+         geom, 
+         (SELECT ST_Centroid(geom) FROM "public"."parcels" WHERE gid = 462273), 
+         1000
+     ) OR ST_DWithin(
+         geom, 
+         (SELECT ST_Centroid(geom) FROM "public"."parcels" WHERE gid = 460957), 
+         1000
+     );
+     ```
+   - This query calculates the average and maximum parcel areas within the specified radius.
 
 ## Resources
 
